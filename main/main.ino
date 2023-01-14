@@ -7,7 +7,8 @@
 #include <IRac.h>
 #include <IRutils.h>
 
-#define IR_SEND_PIN   32
+// #define IR_SEND_PIN   9  // built-in
+#define IR_SEND_PIN   32  // external
 
 IRsend irsend(IR_SEND_PIN);
 
@@ -69,7 +70,7 @@ void printLocalTime()
   
   // 画面書き換え処理　Screen rewriting process.
   if (smin == timeinfo.tm_min) {         // 分単位の変更がかかったかどうか確認
-    M5.Lcd.fillRect(140, 8, 20, 10, BLACK);    // 「秒」だけが変わった場合、秒表示エリアだけ書き換え Rewrite only the display area of seconds.
+    M5.Lcd.fillRect(190, 9, 30, 15, BLACK);    // 「秒」だけが変わった場合、秒表示エリアだけ書き換え Rewrite only the display area of seconds.
   } else {
     M5.Lcd.fillScreen(BLACK);                   // 「分」が変わったら画面全体を書き換え Rewrite the entire screen when the "minute" changes.
     printIsActive();
@@ -77,10 +78,11 @@ void printLocalTime()
   smin = timeinfo.tm_min;
 
   // 日付表示
+  M5.Lcd.setTextSize(2);
   M5.Lcd.setTextFont(1);                      // 1:Adafruit 8ピクセルASCIIフォント
   M5.Lcd.setTextColor(WHITE);                 //日付表示文字だけ白色の文字色にする
   M5.Lcd.setCursor(10, 10, 1);                //x,y,font 1:Adafruit 8ピクセルASCIIフォント
-  M5.Lcd.printf("Date:%04d.%02d.%02d.", timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday);
+  M5.Lcd.printf("%02d.%02d.%02d.", timeinfo.tm_year - 100, timeinfo.tm_mon + 1, timeinfo.tm_mday);
   M5.Lcd.printf("%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min); 
   M5.Lcd.printf(":%02d\n", timeinfo.tm_sec); // 秒を表示
   
@@ -88,17 +90,18 @@ void printLocalTime()
 
 void printIsActive() {
   // アクティブ状態
+  M5.Lcd.setTextSize(2);
   M5.Lcd.setTextColor(WHITE);                 //日付表示文字だけ白色の文字色にする
   M5.Lcd.setCursor(10, 110, 1);                //x,y,font 1:Adafruit 8ピクセルASCIIフォント
   M5.Lcd.printf("active");
-  M5.Lcd.drawCircle(60, 113, 6, WHITE);
-  if(isActive) M5.Lcd.fillCircle(60, 113, 3, WHITE);
-  else M5.Lcd.fillCircle(60, 113, 3, BLACK);
+  M5.Lcd.drawCircle(100, 116, 8, WHITE);
+  if(isActive) M5.Lcd.fillCircle(100, 116, 4, WHITE);
+  else M5.Lcd.fillCircle(100, 116, 4, BLACK);
 }
 
 void printAlarmTime(bool blind) {
   M5.Lcd.setTextSize(1);
-  M5.Lcd.setCursor(10, 40, 7);
+  M5.Lcd.setCursor(10, 45, 7);
   M5.Lcd.setTextColor(GREEN);
   if(blind && mode == 1) {
     M5.Lcd.setTextColor(BLACK);
