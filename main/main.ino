@@ -3,6 +3,18 @@
 #include <WiFi.h>
 #include "time.h"
 
+#include <IRsend.h>
+#include <IRac.h>
+#include <IRutils.h>
+
+#define IR_SEND_PIN   32
+
+IRsend irsend(IR_SEND_PIN);
+
+// Light ON / OFF rawData
+#define IR_MAX_SEND_DATA 85
+uint16_t rawData[85] = {2038, 972,  5580, 960,  1572, 450,  1570, 450,  566, 460,  564, 458,  482, 542,  554, 470,  558, 468,  554, 472,  1572, 448,  566, 458,  568, 456,  568, 456,  480, 546,  556, 472,  558, 464,  556, 470,  570, 456,  1572, 450,  568, 458,  564, 488,  450, 546,  554, 470,  558, 466,  558, 470,  566, 458,  568, 460,  566, 458,  544, 482,  480, 546,  552, 474,  556, 468,  554, 472,  566, 462,  1546, 474,  566, 460,  1546, 474,  1570, 450,  554, 472,  1546, 474,  542, 482,  452};  // UNKNOWN 79051C43
+
 const char* ssid       = "HUMAX-BD2EB";
 const char* password   = "MjdjMmNxMEgaX";
 
@@ -15,7 +27,7 @@ bool isActive = false;
 bool hasReachedTime = false;
 int mode = 0;  // 0: normal, 1:hour, 2:minute
 int alarmHour = 0;
-int alarmMinute = 0;
+int alarmMinute = 0; 
 
 bool checkHasReached() {
   struct tm timeinfo;
@@ -104,10 +116,8 @@ void printAlarmTime(bool blind) {
   }
 }
 
-void turnLight(bool isOn) {
-  M5.Lcd.drawCircle(80, 113, 6, WHITE);
-  if(isOn) M5.Lcd.fillCircle(80, 113, 3, WHITE);
-  else M5.Lcd.fillCircle(80, 113, 3, BLACK);
+void turnLight() {
+  irsend.sendRaw((uint16_t*)rawData, IR_MAX_SEND_DATA, 38);
 }
 
 void setup()
@@ -117,6 +127,8 @@ void setup()
   M5.Lcd.setRotation(3);
   M5.Axp.ScreenBreath(12);            // 液晶バックライト電圧設定 LCD backlight voltage setting.
   M5.Lcd.fillScreen(BLACK); 
+
+  irsend.begin();
 
   //connect to WiFi
   int cnt=0;
@@ -177,7 +189,7 @@ void loop()
     }
 
     if(isActive && hasReachedTime && i == 5) {
-      turnLight(false);
+      turnLight();
     }
 
     delay(100);
@@ -187,13 +199,13 @@ void loop()
   if(isActive && !hasReachedTime) {
     bool res = checkHasReached();
     if(res) hasReachedTime = true;
-  } else if(!isActive) {
+  } else if(!isActive && hasReachedTime) {
     hasReachedTime = false;
-    turnLight(true);  // 最後タイマー切ったあとデフォルトはON!起きたいので
+    turnLight();  // 最後タイマー切ったあとデフォルトはON!起きたいので
   }
 
   if(isActive && hasReachedTime) {
-    turnLight(true);
+    turnLight();
   }
 
   printLocalTime();
